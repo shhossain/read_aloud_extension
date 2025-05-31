@@ -5,7 +5,7 @@
         theme: 'light',
         settings: {
             apiBase: "https://api.example.com/v1",
-            voice: "af_jessica",
+            voice: "",
             speed: 1.0
         }
     };

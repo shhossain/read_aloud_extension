@@ -304,26 +304,26 @@ async function fetchVoices(settings: TTSSettings): Promise<void> {
         console.log('Error fetching voices:', error);
 
         // Add a default option
-        if (voiceSelectElement) {
-            voiceSelectElement.innerHTML = '<option value="af_jessica">Jessica (Default)</option>';
+        // if (voiceSelectElement) {
+        //     voiceSelectElement.innerHTML = '<option value="af_jessica">Jessica (Default)</option>';
 
-            // Try to restore the saved voice
-            chrome.runtime.sendMessage({ action: "getSettings" }, function (response) {
-                if (response && response.settings && response.settings.voice) {
-                    if (response.settings.voice !== "af_jessica") {
-                        // Add the saved voice as an option
-                        const option = document.createElement('option');
-                        option.value = response.settings.voice;
-                        option.textContent = `${response.settings.voice} (Saved)`;
-                        voiceSelectElement?.appendChild(option);
+        //     // Try to restore the saved voice
+        //     chrome.runtime.sendMessage({ action: "getSettings" }, function (response) {
+        //         if (response && response.settings && response.settings.voice) {
+        //             if (response.settings.voice !== "af_jessica") {
+        //                 // Add the saved voice as an option
+        //                 const option = document.createElement('option');
+        //                 option.value = response.settings.voice;
+        //                 option.textContent = `${response.settings.voice} (Saved)`;
+        //                 voiceSelectElement?.appendChild(option);
 
-                        if (voiceSelectElement) {
-                            voiceSelectElement.value = response.settings.voice;
-                        }
-                    }
-                }
-            });
-        }
+        //                 if (voiceSelectElement) {
+        //                     voiceSelectElement.value = response.settings.voice;
+        //                 }
+        //             }
+        //         }
+        //     });
+        // }
     }
 }
 

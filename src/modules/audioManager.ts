@@ -1,9 +1,9 @@
 import { TTSSettings } from "../types/common";
-import { state } from "./state";
+import { state, subscribeToKey } from "./state";
 
 // Settings and cache management
 let API_BASE = "";
-let VOICE = "af_jessica";
+let VOICE = "";
 let API_KEY = "";
 let MODEL = "";
 let SPEED = 1.5;
@@ -48,7 +48,20 @@ export function initSettings(): Promise<void> {
             }
             return true; // Indicate async response
         });
+
+
+        subscribeToKey("settings", (newSettings: TTSSettings, oldSetting: TTSSettings) => {
+            // if model, voice or speed changed, abort all audio requests and clear cache
+            const isChanged = newSettings.model !== oldSetting.model || newSettings.voice !== oldSetting.voice || newSettings.speed !== oldSetting.speed;
+            if (isChanged) {
+                console.log("Settings changed, aborting all audio requests and clearing cache");
+                abortAll();
+                mem.clear();
+                memAccessOrder.length = 0; // Clear access order
+            }
+        });
     });
+
 }
 
 function updateSettings(settings: TTSSettings): void {
@@ -251,11 +264,11 @@ async function fetchAudio(text: string): Promise<Blob | null> {
     }, FETCH_TIMEOUT);
 
     let body = {
-        model: MODEL || "kokoro",
+        model: state.settings.model || undefined,
         input: text,
-        voice: VOICE,
+        voice: state.settings.voice || undefined,
         response_format: "mp3",
-        speed: SPEED,
+        speed: state.settings.speed || undefined,
     };
 
     let headers: Record<string, string> = {

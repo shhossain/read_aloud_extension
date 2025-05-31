@@ -14,31 +14,45 @@
         "shimmer"
     ];
 
-    const getVoices = async (apiBase, apiKey) => {
-        try {
-            const headers = {};
-            if (apiKey) {
-                headers["Authorization"] = `Bearer ${apiKey}`;
-            }
-            const response = await fetch(`${apiBase}/audio/voices`, {
-                headers
-            });
-            if (!response.ok) {
-                throw new Error(`Failed to fetch voices: ${response.status}`);
-            }
-            const data = await response.json();
-            return data;
+    const _getVoices = async (apiBase, apiKey, endpoint) => {
+        const headers = {};
+        if (apiKey) {
+            headers["Authorization"] = `Bearer ${apiKey}`;
         }
-        catch (error) {
-            console.log('Error fetching voices:', error);
-            let voices = [];
-            if (apiBase.includes("api.openai.com")) {
-                voices = OPENAI_VOICES;
+        const url = endpoint ? `${apiBase}/${endpoint}` : `${apiBase}/audio/voices`;
+        const response = await fetch(url, {
+            headers
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch voices: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+    };
+    const getVoices = async (apiBase, apiKey, endpoint) => {
+        const endpoints = [
+            "/audio/voices",
+            "/voices"
+        ];
+        let data;
+        for (const ep of endpoints) {
+            try {
+                data = await _getVoices(apiBase, apiKey, ep);
+                if (data.voices && data.voices.length > 0) {
+                    break;
+                }
             }
+            catch (error) {
+                console.error(`Error fetching voices from ${ep}:`, error);
+            }
+        }
+        if (!data && apiBase.includes("api.openai.com")) {
+            // Fallback to default voices if no data is fetched
             return {
-                voices,
+                voices: OPENAI_VOICES,
             };
         }
+        return data || { voices: [] };
     };
 
     const defaultState = {
@@ -46,7 +60,7 @@
         theme: 'light',
         settings: {
             apiBase: "https://api.example.com/v1",
-            voice: "af_jessica",
+            voice: "",
             speed: 1.0
         }
     };

@@ -14,31 +14,45 @@
         "shimmer"
     ];
 
-    const getVoices = async (apiBase, apiKey) => {
-        try {
-            const headers = {};
-            if (apiKey) {
-                headers["Authorization"] = `Bearer ${apiKey}`;
-            }
-            const response = await fetch(`${apiBase}/audio/voices`, {
-                headers
-            });
-            if (!response.ok) {
-                throw new Error(`Failed to fetch voices: ${response.status}`);
-            }
-            const data = await response.json();
-            return data;
+    const _getVoices = async (apiBase, apiKey, endpoint) => {
+        const headers = {};
+        if (apiKey) {
+            headers["Authorization"] = `Bearer ${apiKey}`;
         }
-        catch (error) {
-            console.log('Error fetching voices:', error);
-            let voices = [];
-            if (apiBase.includes("api.openai.com")) {
-                voices = OPENAI_VOICES;
+        const url = endpoint ? `${apiBase}/${endpoint}` : `${apiBase}/audio/voices`;
+        const response = await fetch(url, {
+            headers
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch voices: ${response.status}`);
+        }
+        const data = await response.json();
+        return data;
+    };
+    const getVoices = async (apiBase, apiKey, endpoint) => {
+        const endpoints = [
+            "/audio/voices",
+            "/voices"
+        ];
+        let data;
+        for (const ep of endpoints) {
+            try {
+                data = await _getVoices(apiBase, apiKey, ep);
+                if (data.voices && data.voices.length > 0) {
+                    break;
+                }
             }
+            catch (error) {
+                console.error(`Error fetching voices from ${ep}:`, error);
+            }
+        }
+        if (!data && apiBase.includes("api.openai.com")) {
+            // Fallback to default voices if no data is fetched
             return {
-                voices,
+                voices: OPENAI_VOICES,
             };
         }
+        return data || { voices: [] };
     };
 
     const defaultState = {
@@ -46,7 +60,7 @@
         theme: 'light',
         settings: {
             apiBase: "https://api.example.com/v1",
-            voice: "af_jessica",
+            voice: "",
             speed: 1.0
         }
     };
@@ -129,7 +143,7 @@
 
     // Settings and cache management
     let API_BASE = "";
-    let VOICE = "af_jessica";
+    let VOICE = "";
     let API_KEY = "";
     let MODEL = "";
     let SPEED = 1.5;
@@ -160,6 +174,16 @@
                     sendResponse({ acknowledged: true });
                 }
                 return true; // Indicate async response
+            });
+            subscribeToKey("settings", (newSettings, oldSetting) => {
+                // if model, voice or speed changed, abort all audio requests and clear cache
+                const isChanged = newSettings.model !== oldSetting.model || newSettings.voice !== oldSetting.voice || newSettings.speed !== oldSetting.speed;
+                if (isChanged) {
+                    console.log("Settings changed, aborting all audio requests and clearing cache");
+                    abortAll();
+                    mem.clear();
+                    memAccessOrder.length = 0; // Clear access order
+                }
             });
         });
     }
@@ -339,11 +363,11 @@
             console.log(`Request timed out after ${FETCH_TIMEOUT / 1000}s:`, text.substring(0, 30));
         }, FETCH_TIMEOUT);
         let body = {
-            model: MODEL || "kokoro",
+            model: state.settings.model || undefined,
             input: text,
-            voice: VOICE,
+            voice: state.settings.voice || undefined,
             response_format: "mp3",
-            speed: SPEED,
+            speed: state.settings.speed || undefined,
         };
         let headers = {
             "Content-Type": "application/json"
@@ -1149,24 +1173,24 @@
         catch (error) {
             console.log('Error fetching voices:', error);
             // Add a default option
-            if (voiceSelectElement) {
-                voiceSelectElement.innerHTML = '<option value="af_jessica">Jessica (Default)</option>';
-                // Try to restore the saved voice
-                chrome.runtime.sendMessage({ action: "getSettings" }, function (response) {
-                    if (response && response.settings && response.settings.voice) {
-                        if (response.settings.voice !== "af_jessica") {
-                            // Add the saved voice as an option
-                            const option = document.createElement('option');
-                            option.value = response.settings.voice;
-                            option.textContent = `${response.settings.voice} (Saved)`;
-                            voiceSelectElement?.appendChild(option);
-                            if (voiceSelectElement) {
-                                voiceSelectElement.value = response.settings.voice;
-                            }
-                        }
-                    }
-                });
-            }
+            // if (voiceSelectElement) {
+            //     voiceSelectElement.innerHTML = '<option value="af_jessica">Jessica (Default)</option>';
+            //     // Try to restore the saved voice
+            //     chrome.runtime.sendMessage({ action: "getSettings" }, function (response) {
+            //         if (response && response.settings && response.settings.voice) {
+            //             if (response.settings.voice !== "af_jessica") {
+            //                 // Add the saved voice as an option
+            //                 const option = document.createElement('option');
+            //                 option.value = response.settings.voice;
+            //                 option.textContent = `${response.settings.voice} (Saved)`;
+            //                 voiceSelectElement?.appendChild(option);
+            //                 if (voiceSelectElement) {
+            //                     voiceSelectElement.value = response.settings.voice;
+            //                 }
+            //             }
+            //         }
+            //     });
+            // }
         }
     }
     function hasControlPanel() {
