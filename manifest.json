@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Custom Read Aloud",
+  "version": "1.0",
+  "description": "Reads selected text aloud with word highlighting",
+  "permissions": ["activeTab", "storage", "contextMenus"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["dist/bundle.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+}

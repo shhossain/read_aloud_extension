@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Custom Read Aloud</title>
+    <style>
+      :root {
+        /* Light theme (default) */
+        --bg-color: #f8f9fa;
+        --text-color: #333;
+        --heading-color: #333;
+        --border-color: #ddd;
+        --input-bg: white;
+        --input-border: #ccc;
+        --toggle-bg: #ccc;
+        --toggle-active-bg: #2196f3;
+        --toggle-handle: white;
+        --button-bg: #4caf50;
+        --button-hover: #45a049;
+        --button-text: white;
+        --stop-button-bg: #f44336;
+        --stop-button-hover: #d32f2f;
+        --settings-border: #ddd;
+        --error-color: #f44336;
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #222;
+        --text-color: #f0f0f0;
+        --heading-color: #e0e0e0;
+        --border-color: #444;
+        --input-bg: #333;
+        --input-border: #555;
+        --toggle-bg: #555;
+        --toggle-active-bg: #2196f3;
+        --toggle-handle: #f0f0f0;
+        --button-bg: #388e3c;
+        --button-hover: #2e7d32;
+        --button-text: #f0f0f0;
+        --stop-button-bg: #d32f2f;
+        --stop-button-hover: #b71c1c;
+        --settings-border: #444;
+        --error-color: #ff6b6b;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        width: 220px;
+        padding: 15px;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      h1 {
+        color: var(--heading-color);
+        font-size: 18px;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+        margin-right: 10px;
+      }
+
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--toggle-bg);
+        transition: 0.4s;
+        border-radius: 24px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: var(--toggle-handle);
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: var(--toggle-active-bg);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
+      .status-label {
+        font-size: 14px;
+      }
+      .button {
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        padding: 8px 15px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+      }
+
+      .button:hover {
+        background-color: var(--button-hover);
+      }
+      .stop-button {
+        background-color: var(--stop-button-bg);
+      }
+
+      .stop-button:hover {
+        background-color: var(--stop-button-hover);
+      }
+      .info {
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+        margin-top: 15px;
+      }
+
+      .info p {
+        margin: 5px 0;
+      }
+      .settings-container {
+        width: 100%;
+        margin-top: 15px;
+        border-top: 1px solid var(--settings-border);
+        padding-top: 15px;
+      }
+
+      .settings-container h2 {
+        font-size: 16px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .setting-item {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .setting-input {
+        width: 150px;
+        padding: 5px;
+        border: 1px solid var(--input-border);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+      }
+
+      #speedRange {
+        width: 100px;
+      }
+      #speedValue {
+        width: 40px;
+        text-align: center;
+      }
+
+      .voice-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .voice-select-container .setting-input {
+        width: 125px;
+      }
+
+      .small-button {
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .small-button:hover {
+        background-color: #0b7dda;
+      }
+
+      .status-message {
+        font-size: 12px;
+        margin-top: 5px;
+        color: #666;
+        text-align: center;
+      }
+      .error {
+        color: var(--error-color);
+      }
+
+      .theme-toggle-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0;
+      }
+
+      .theme-toggle-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: 20px;
+        padding: 6px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+      }
+
+      .theme-toggle-button:hover {
+        background-color: var(--button-hover);
+      }
+
+      .theme-toggle-button span {
+        margin-right: 5px;
+      }
+
+      #saveSettings {
+        width: 100%;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Custom Read Aloud</h1>
+
+      <!-- <div class="toggle-container">
+        <label class="toggle-switch">
+          <input type="checkbox" id="activeToggle" />
+          <span class="slider"></span>
+        </label>
+        <span class="status-label" id="statusText">Extension Off</span>
+      </div>
+      <button id="stopReading" class="button stop-button">Stop Reading</button> -->
+
+      <div class="theme-toggle-container">
+        <button id="themeToggle" class="theme-toggle-button">
+          <span id="themeIcon">🌙</span>
+          <span id="themeText">Dark Mode</span>
+        </button>
+      </div>
+
+      <div class="settings-container">
+        <h2>Settings</h2>
+
+        <div class="setting-item">
+          <label for="apiBase">API Base:</label>
+          <input type="text" id="apiBase" class="setting-input" />
+        </div>
+        <div class="setting-item">
+          <label for="apiKey">API Key:</label>
+          <input type="text" id="apiKey" class="setting-input" />
+        </div>
+        <div class="setting-item">
+          <label for="model">Model:</label>
+          <input type="text" id="model" class="setting-input" />
+        </div>
+        <div class="setting-item voice-select-container">
+          <label for="voiceSelect">Voice:</label>
+          <div class="voice-controls">
+            <select id="voiceSelect" class="setting-input">
+              <option value="loading">Loading voices...</option>
+            </select>
+            <button id="refreshVoices" class="small-button" title="Refresh voices list">↻</button>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <label for="customVoice">Custom Voice:</label>
+          <input type="text" id="customVoice" placeholder="e.g., af_jessica" class="setting-input" />
+        </div>
+
+        <div class="setting-item">
+          <label for="speedRange">Speed:</label>
+          <input type="range" min="0.5" max="2.5" step="0.1" value="1.5" id="speedRange" class="setting-input" />
+          <span id="speedValue">1.5x</span>
+        </div>
+        <div id="statusMessage" class="status-message"></div>
+
+        <button id="saveSettings" class="button">Save Settings</button>
+      </div>
+      <div class="info">
+        <p>Right-click and select "Read aloud from here" from the context menu.</p>
+      </div>
+
+      <!-- <div class="theme-toggle-container">
+        <button id="themeToggle" class="theme-toggle-button"><span>🌙</span> Toggle Theme</button>
+      </div> -->
+    </div>
+    <script src="dist/popup.js"></script>
+  </body>
+</html>

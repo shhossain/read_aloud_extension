@@ -1,0 +1,471 @@
+/* styles.css for Custom Read Aloud extension */
+
+/* Theme variables */
+:root {
+  /* Light theme (default) */
+  --background-color: #f8f9fa;
+  --text-color: #333;
+  --border-color: #ccc;
+  --highlight-bg: yellow;
+  --highlight-text: black;
+  --preload-highlight-bg: rgba(220, 252, 231, 0.5);
+  --preload-highlight-border: rgba(34, 197, 94, 0.3);
+  --button-bg: #f0f0f0;
+  --button-text: #333;
+  --button-shadow: rgba(0, 0, 0, 0.1);
+  --disabled-bg: #cccccc;
+  --disabled-text: #888888;
+  --start-button-bg: #4caf50;
+  --start-button-hover: #45a049;
+  --stop-button-bg: #f44336;
+  --stop-button-hover: #d32f2f;
+  --green-accent: #22c55e;
+  --input-bg: white;
+  --input-border: #ccc;
+  --message-bg: rgba(0, 0, 0, 0.7);
+  --message-text: white;
+  --wave-inactive: #aaaaaa;
+  --box-shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --background-color: #222;
+  --text-color: #f0f0f0;
+  --border-color: #444;
+  --highlight-bg: #ffcc00;
+  --highlight-text: black;
+  --preload-highlight-bg: rgba(34, 197, 94, 0.2);
+  --preload-highlight-border: rgba(34, 197, 94, 0.5);
+  --button-bg: #444;
+  --button-text: #f0f0f0;
+  --button-shadow: rgba(0, 0, 0, 0.3);
+  --disabled-bg: #555;
+  --disabled-text: #999;
+  --start-button-bg: #388e3c;
+  --start-button-hover: #2e7d32;
+  --stop-button-bg: #d32f2f;
+  --stop-button-hover: #b71c1c;
+  --green-accent: #4caf50;
+  --input-bg: #333;
+  --input-border: #555;
+  --message-bg: rgba(0, 0, 0, 0.85);
+  --message-text: #f0f0f0;
+  --wave-inactive: #666;
+  --box-shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+.read-highlight {
+  background-color: var(--highlight-bg);
+  color: var(--highlight-text);
+  transition: all 0.2s ease;
+}
+
+.read-preload-highlight {
+  position: relative;
+  display: inline-block;
+  background-color: var(--preload-highlight-bg);
+  color: inherit;
+  box-shadow: 0 0 0 1px var(--preload-highlight-border);
+  transition: all 0.2s ease;
+  animation: pulse-gentle 2s infinite ease-in-out;
+}
+
+@keyframes pulse-gentle {
+  0% {
+    background-color: var(--preload-highlight-bg);
+  }
+  50% {
+    background-color: var(--preload-highlight-border);
+  }
+  100% {
+    background-color: var(--preload-highlight-bg);
+  }
+}
+
+/* Preload highlight animation line */
+.read-preload-highlight::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--green-accent), transparent);
+  background-size: 200% 100%;
+  animation: loading-line 1.5s infinite ease;
+}
+
+@keyframes loading-line {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Control Panel Styles */
+.read-aloud-control-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  z-index: 9999;
+  box-shadow: 0 2px 5px var(--box-shadow-color);
+}
+
+.read-aloud-controls {
+  display: flex;
+  gap: 15px;
+  /* max-width: 1000px; */
+  /* margin: 0 auto; */
+  justify-content: space-between;
+}
+
+.read-aloud-buttons {
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+  /* justify-self: center; */
+}
+
+.read-aloud-left {
+  padding: 8px 16px;
+}
+
+.read-aloud-title {
+  font-weight: bold;
+  margin-right: 10px;
+  color: var(--text-color);
+  white-space: nowrap;
+}
+
+.read-aloud-buttons {
+  display: flex;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.read-aloud-settings {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  white-space: nowrap;
+  position: relative;
+}
+
+/* Settings toggle button */
+.read-aloud-button.settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  font-size: 16px;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.read-aloud-button.settings-toggle:hover {
+  background-color: var(--button-hover);
+  transform: rotate(90deg);
+}
+
+/* Settings dropdown */
+.read-aloud-settings-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px var(--box-shadow-color);
+  z-index: 10000;
+  min-width: 250px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  margin-top: 5px;
+}
+
+.read-aloud-settings-dropdown.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.read-aloud-settings-dropdown label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  white-space: nowrap;
+}
+
+.read-aloud-settings-dropdown label:last-child {
+  margin-bottom: 0;
+}
+
+.read-aloud-settings-dropdown label span:first-child {
+  min-width: 50px;
+  font-weight: 500;
+}
+
+.read-aloud-settings-dropdown select,
+.read-aloud-settings-dropdown input[type="range"] {
+  padding: 4px 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  min-width: 120px;
+}
+
+.read-aloud-settings-dropdown input[type="range"] {
+  min-width: 80px;
+}
+
+.read-aloud-settings label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.read-aloud-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  transition: background-color 0.2s;
+}
+
+.read-aloud-button.start {
+  background-color: var(--start-button-bg);
+  color: white;
+}
+
+.read-aloud-button.start:hover {
+  background-color: var(--start-button-hover);
+}
+
+.read-aloud-button.stop {
+  min-width: 80px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: var(--stop-button-bg);
+  color: white;
+}
+
+.read-aloud-button.stop:hover {
+  background-color: var(--stop-button-hover);
+}
+
+.read-aloud-button:disabled {
+  background-color: var(--disabled-bg);
+  color: var(--disabled-text);
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.read-aloud-button:disabled:hover {
+  background-color: var(--disabled-bg);
+}
+
+/* Theme toggle button */
+.read-aloud-button.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  font-size: 16px;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.read-aloud-button.theme-toggle:hover {
+  background-color: var(--button-hover);
+  transform: rotate(20deg);
+}
+
+.read-aloud-settings select,
+.read-aloud-settings input[type="range"] {
+  padding: 3px 5px;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+}
+
+.read-aloud-button.close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: var(--button-bg);
+  color: var(--button-text);
+  font-size: 18px;
+  font-weight: bold;
+  transition: transform 0.2s, background-color 0.2s;
+  margin-left: 10px;
+}
+
+.read-aloud-button.close-button:hover {
+  background-color: var(--stop-button-bg);
+  color: white;
+  transform: rotate(90deg);
+}
+
+#read-aloud-speed {
+  width: 80px;
+}
+
+#read-aloud-speed-value {
+  min-width: 30px;
+  text-align: center;
+}
+
+.read-aloud-message {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--message-bg);
+  color: var(--message-text);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  animation: fadeOut 3s forwards;
+}
+
+/* Sound wave animation */
+.read-aloud-wave {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-right: 12px;
+  opacity: 1;
+  visibility: visible;
+  vertical-align: middle;
+}
+
+.read-aloud-wave.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.read-aloud-wave:not(.active) span {
+  height: 2px !important;
+  animation: none !important;
+  transform: none !important;
+  background: var(--wave-inactive);
+}
+
+.read-aloud-wave span {
+  background: var(--green-accent);
+  border-radius: 3px;
+  display: inline-block;
+  height: 100%;
+  width: 3px;
+  margin: 0 2px;
+  animation: wave 1.2s infinite ease-in-out;
+}
+
+.read-aloud-wave span:nth-child(1) {
+  animation-delay: -1.2s;
+}
+.read-aloud-wave span:nth-child(2) {
+  animation-delay: -1s;
+}
+.read-aloud-wave span:nth-child(3) {
+  animation-delay: -0.8s;
+}
+.read-aloud-wave span:nth-child(4) {
+  animation-delay: -0.6s;
+}
+.read-aloud-wave span:nth-child(5) {
+  animation-delay: -0.4s;
+}
+
+@keyframes wave {
+  0%,
+  40%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  20% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    background-color: var(--preload-highlight-bg);
+    transform: scale(1);
+  }
+  50% {
+    background-color: var(--preload-highlight-border);
+    transform: scale(1.05);
+  }
+  100% {
+    background-color: var(--preload-highlight-bg);
+    transform: scale(1);
+  }
+}
+
+/* Responsive styles */
+/* @media (max-width: 768px) {
+  .read-aloud-controls {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 10px;
+  }
+
+  .read-aloud-left,
+  .read-aloud-buttons,
+  .read-aloud-settings {
+    justify-self: center;
+  }
+
+  .read-aloud-settings {
+    flex-direction: column;
+    align-items: center;
+  }
+} */
